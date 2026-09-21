@@ -1,0 +1,996 @@
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+		/>
+		<title>Flores Amarillas para Ti | 21 de Septiembre 💛</title>
+
+		<script src="https://cdn.tailwindcss.com"></script>
+
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,700;1,400;1,600&display=swap"
+			rel="stylesheet"
+		/>
+
+		<!-- Lucide Icons -->
+		<script src="https://unpkg.com/lucide@latest"></script>
+
+		<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+		<style>
+			:root {
+				--primary-gold: #eab308;
+				--deep-gold: #ca8a04;
+				--soft-parchment: #fdfaf3;
+			}
+
+			body {
+				font-family: "Outfit", sans-serif;
+				background: radial-gradient(circle at 50% 20%, #fffef8 0%, #fdf6e2 45%, #faedd0 100%);
+				min-height: 100vh;
+				overflow-x: hidden;
+				color: #3f2f18;
+				-webkit-tap-highlight-color: transparent;
+			}
+
+			.font-script {
+				font-family: "Great Vibes", cursive;
+			}
+
+			.font-serif-romance {
+				font-family: "Playfair Display", serif;
+			}
+
+			#ambient-canvas {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100vw;
+				height: 100vh;
+				pointer-events: none;
+				z-index: 1;
+			}
+
+			@keyframes gentle-float {
+				0%,
+				100% {
+					transform: translateY(0px) scale(1);
+				}
+				50% {
+					transform: translateY(-8px) scale(1.015);
+				}
+			}
+
+			.animate-float {
+				animation: gentle-float 4.2s ease-in-out infinite;
+			}
+
+			@keyframes pulse-gold {
+				0%,
+				100% {
+					box-shadow:
+						0 0 25px rgba(234, 179, 8, 0.4),
+						0 0 50px rgba(245, 158, 11, 0.2);
+				}
+				50% {
+					box-shadow:
+						0 0 45px rgba(234, 179, 8, 0.7),
+						0 0 75px rgba(245, 158, 11, 0.4);
+				}
+			}
+
+			.wax-seal {
+				background: radial-gradient(circle at 35% 30%, #ffd966 0%, #e6a100 45%, #b37400 90%);
+				box-shadow:
+					inset 0 2px 4px rgba(255, 255, 255, 0.6),
+					0 8px 24px rgba(179, 116, 0, 0.45);
+			}
+
+			.wax-seal:hover {
+				transform: scale(1.08) rotate(3deg);
+			}
+
+			/* Parchment Card */
+			.card-glass {
+				background: rgba(255, 255, 255, 0.88);
+				backdrop-filter: blur(14px);
+				-webkit-backdrop-filter: blur(14px);
+				border: 1px solid rgba(245, 215, 130, 0.5);
+				box-shadow:
+					0 25px 60px -15px rgba(180, 130, 20, 0.16),
+					0 0 0 1px rgba(255, 245, 210, 0.7);
+			}
+
+			.flip-card {
+				perspective: 1000px;
+			}
+			.flip-card-inner {
+				position: relative;
+				width: 100%;
+				height: 100%;
+				text-align: center;
+				transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+				transform-style: preserve-3d;
+			}
+			.flip-card.is-flipped .flip-card-inner {
+				transform: rotateY(180deg);
+			}
+			.flip-front,
+			.flip-back {
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				-webkit-backface-visibility: hidden;
+				backface-visibility: hidden;
+				border-radius: 1.25rem;
+			}
+			.flip-back {
+				transform: rotateY(180deg);
+			}
+
+			/* Floating hearts / sparkles injected on tap */
+			.tap-sparkle {
+				position: fixed;
+				pointer-events: none;
+				animation: float-up-fade 1.4s ease-out forwards;
+				z-index: 999;
+			}
+
+			@keyframes float-up-fade {
+				0% {
+					opacity: 1;
+					transform: translate(-50%, -50%) scale(0.6) rotate(0deg);
+				}
+				50% {
+					opacity: 0.9;
+				}
+				100% {
+					opacity: 0;
+					transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% - 90px)) scale(1.3)
+						rotate(var(--rot, 20deg));
+				}
+			}
+		</style>
+	</head>
+	<body class="selection:bg-amber-200">
+		<canvas id="ambient-canvas"></canvas>
+
+		<div id="audio-toggle-container" class="fixed top-4 right-4 z-40 hidden">
+			<button
+				id="btn-audio-toggle"
+				class="px-3.5 py-2 rounded-full glass-card bg-white/90 shadow-md border border-amber-200/70 text-amber-900 text-xs font-medium flex items-center gap-2 hover:bg-amber-50 active:scale-95 transition-all"
+			>
+				<span class="relative flex h-2.5 w-2.5">
+					<span
+						id="audio-ping"
+						class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"
+					></span>
+					<span
+						id="audio-dot"
+						class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"
+					></span>
+				</span>
+				<i id="audio-icon" data-lucide="volume-2" class="w-3.5 h-3.5 text-amber-700"></i>
+				<span id="audio-text" class="hidden sm:inline">Melodía</span>
+			</button>
+		</div>
+
+		<section
+			id="screen-envelope"
+			class="relative z-30 min-h-screen flex flex-col items-center justify-center p-4 transition-all duration-700"
+		>
+			<div class="w-full max-w-md mx-auto text-center">
+				<div
+					id="envelope-clickable"
+					class="animate-float cursor-pointer group mx-auto relative w-72 sm:w-80 h-48 sm:h-52 rounded-2xl bg-gradient-to-br from-[#faf4e6] via-[#f7ebd4] to-[#eed8b0] border border-amber-300/80 shadow-2xl p-6 flex flex-col items-center justify-center transition-transform hover:scale-[1.03] active:scale-98"
+				>
+					<div class="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
+						<div
+							class="absolute -top-2 left-0 w-full h-24 border-b-2 border-amber-400/40 transform rotate-1 bg-gradient-to-b from-white/40 to-transparent"
+						></div>
+						<div
+							class="absolute top-0 left-0 w-0 h-0 border-l-[140px] sm:border-l-[160px] border-l-amber-200/30 border-t-[90px] border-t-transparent border-b-[90px] border-b-transparent"
+						></div>
+						<div
+							class="absolute top-0 right-0 w-0 h-0 border-r-[140px] sm:border-r-[160px] border-r-amber-200/30 border-t-[90px] border-t-transparent border-b-[90px] border-b-transparent"
+						></div>
+					</div>
+
+					<p
+						class="font-serif-romance text-xs tracking-widest text-amber-900/60 uppercase mb-4 relative z-10"
+					>
+						21 de Septiembre • Con Cariño
+					</p>
+
+					<div
+						class="wax-seal w-20 h-20 rounded-full flex items-center justify-center relative z-20 cursor-pointer transition-all duration-300"
+					>
+						<div
+							class="w-16 h-16 rounded-full border-2 border-amber-200/70 flex flex-col items-center justify-center text-amber-950 font-bold"
+						>
+							<i data-lucide="flower" class="w-7 h-7 text-amber-900 filter drop-shadow"></i>
+							<span class="text-[9px] uppercase tracking-wider font-extrabold mt-0.5">Abrir</span>
+						</div>
+					</div>
+
+					<p class="font-script text-2xl text-amber-900 mt-4 relative z-10">Para mi mejor amiga</p>
+				</div>
+
+				<div class="mt-8 space-y-2">
+					<p
+						class="text-sm sm:text-base text-amber-900/80 font-medium flex items-center justify-center gap-2"
+					>
+						<span>✨ Tienes una carta especial de flores amarillas</span>
+					</p>
+					<p class="text-xs text-stone-500 animate-pulse">
+						(Toca el sello para abrirla con música)
+					</p>
+				</div>
+			</div>
+		</section>
+
+		<main
+			id="screen-content"
+			class="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 pt-6 pb-20 hidden opacity-0 transition-opacity duration-1000"
+		>
+			<header class="text-center mb-6">
+				<div
+					class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-100/90 border border-amber-300/80 text-amber-900 text-xs sm:text-sm font-semibold shadow-sm mb-3"
+				>
+					<span>🌻</span>
+					<span>21 de Septiembre • Feliz Día de las Flores Amarillas</span>
+				</div>
+				<h1 class="text-4xl sm:text-6xl font-script text-amber-950 leading-tight">
+					Para Mi Mejor Amiga
+				</h1>
+				<p class="text-stone-600 text-xs sm:text-sm max-w-md mx-auto mt-1 font-light">
+					Una flor única que nunca se marchita, para la persona que hace florecer mis días más
+					felices.
+				</p>
+			</header>
+
+			<section
+				class="card-glass rounded-3xl p-5 sm:p-8 relative overflow-hidden shadow-2xl border border-amber-200/90"
+			>
+				<div
+					class="flex justify-between items-center text-[11px] uppercase tracking-widest text-amber-700/70 font-semibold mb-2"
+				>
+					<span>✦ Flores Eternas ✦</span>
+					<span>21 • 09</span>
+				</div>
+
+				<div class="relative w-full flex flex-col items-center justify-center my-2">
+					<span
+						class="absolute top-2 bg-white/80 border border-amber-200 text-amber-800 text-[11px] font-medium px-3 py-1 rounded-full shadow-sm backdrop-blur-sm pointer-events-none animate-pulse"
+					>
+						💛 Toca la flor para esparcir magia
+					</span>
+
+					<canvas
+						id="flower-canvas"
+						width="460"
+						height="490"
+						class="w-full max-w-[420px] h-auto rounded-2xl cursor-pointer drop-shadow-md select-none touch-none active:scale-[0.99] transition-transform"
+					></canvas>
+
+					<div class="mt-3 flex items-center gap-2">
+						<button
+							id="btn-re-bloom"
+							class="px-4 py-2 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-semibold border border-amber-300/60 shadow-sm flex items-center gap-1.5 active:scale-95 transition-all"
+						>
+							<i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-600"></i>
+							<span>Volver a Florecer</span>
+						</button>
+
+						<button
+							id="btn-toggle-bouquet"
+							class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold shadow-md shadow-amber-500/20 flex items-center gap-1.5 active:scale-95 transition-all"
+						>
+							<i data-lucide="layers" class="w-3.5 h-3.5"></i>
+							<span id="label-bouquet-btn">Ver en Ramillete</span>
+						</button>
+					</div>
+				</div>
+
+				<article class="mt-8 pt-6 border-t border-amber-200/70 text-center px-2 sm:px-6">
+					<p class="font-script text-3xl sm:text-4xl text-amber-800 mb-2">
+						Gracias por ser mi lugar seguro
+					</p>
+
+					<p
+						class="font-serif-romance italic text-stone-700 text-base sm:text-lg leading-relaxed max-w-xl mx-auto"
+					>
+						"Dicen que las flores amarillas se regalan a las personas que traen luz, alegría y
+						calidez a tu vida... y nadie ilumina mis días como tú. Gracias por cada risa compartida,
+						por escucharme en silencio, por celebrar mis logros y por estar siempre ahí en las
+						buenas y en las malas. Nuestra amistad es el regalo más bonito."
+					</p>
+
+					<div class="mt-4 pt-3 flex flex-col items-center">
+						<span class="text-xs uppercase tracking-widest font-semibold text-amber-900/70">
+							Con todo mi cariño en este 21 de septiembre
+						</span>
+						<span class="font-script text-2xl text-amber-700 mt-1">
+							Tu mejor amigo/a por siempre ✨
+						</span>
+					</div>
+				</article>
+			</section>
+
+			<section class="mt-10">
+				<div class="text-center mb-5">
+					<h2 class="text-2xl sm:text-3xl font-serif-romance font-bold text-amber-950">
+						Pequeñas razones por las que eres tan especial
+					</h2>
+					<p class="text-xs sm:text-sm text-stone-600 mt-1">
+						(Toca cada tarjeta para voltearla y leer lo que hay detrás 💛)
+					</p>
+				</div>
+
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+					<div class="flip-card h-36 cursor-pointer" onclick="toggleCard(this)">
+						<div class="flip-card-inner">
+							<div
+								class="flip-front card-glass p-5 flex flex-col items-center justify-center border border-amber-200/70 shadow-sm hover:border-amber-400 transition-all"
+							>
+								<span class="text-3xl mb-1">💛</span>
+								<h3 class="font-semibold text-amber-950 text-sm">Tu Apoyo Incondicional</h3>
+								<span class="text-[11px] text-amber-700/60 mt-1">Toca para descubrir</span>
+							</div>
+							<div
+								class="flip-back bg-gradient-to-br from-amber-400 to-amber-500 text-amber-950 p-5 flex flex-col items-center justify-center rounded-2xl shadow-lg border border-amber-300"
+							>
+								<p class="text-xs sm:text-sm font-medium leading-snug">
+									"No importa la hora ni el problema, sé que siempre puedo contar contigo. Tenerte a
+									mi lado me da una paz inmensa."
+								</p>
+							</div>
+						</div>
+					</div>
+
+					<div class="flip-card h-36 cursor-pointer" onclick="toggleCard(this)">
+						<div class="flip-card-inner">
+							<div
+								class="flip-front card-glass p-5 flex flex-col items-center justify-center border border-amber-200/70 shadow-sm hover:border-amber-400 transition-all"
+							>
+								<span class="text-3xl mb-1">✨</span>
+								<h3 class="font-semibold text-amber-950 text-sm">Risas Interminables</h3>
+								<span class="text-[11px] text-amber-700/60 mt-1">Toca para descubrir</span>
+							</div>
+							<div
+								class="flip-back bg-gradient-to-br from-amber-400 to-amber-500 text-amber-950 p-5 flex flex-col items-center justify-center rounded-2xl shadow-lg border border-amber-300"
+							>
+								<p class="text-xs sm:text-sm font-medium leading-snug">
+									"Nadie entiende mis tonterías como tú. Esas risas hasta que nos duele la panza no
+									las cambio por nada en este mundo."
+								</p>
+							</div>
+						</div>
+					</div>
+
+					<div class="flip-card h-36 cursor-pointer" onclick="toggleCard(this)">
+						<div class="flip-card-inner">
+							<div
+								class="flip-front card-glass p-5 flex flex-col items-center justify-center border border-amber-200/70 shadow-sm hover:border-amber-400 transition-all"
+							>
+								<span class="text-3xl mb-1">🌻</span>
+								<h3 class="font-semibold text-amber-950 text-sm">En las Buenas y en las Malas</h3>
+								<span class="text-[11px] text-amber-700/60 mt-1">Toca para descubrir</span>
+							</div>
+							<div
+								class="flip-back bg-gradient-to-br from-amber-400 to-amber-500 text-amber-950 p-5 flex flex-col items-center justify-center rounded-2xl shadow-lg border border-amber-300"
+							>
+								<p class="text-xs sm:text-sm font-medium leading-snug">
+									"Has estado en mis días nublados y en mis mejores triunfos. Gracias por ser leal,
+									sincera y la mejor compañera de vida."
+								</p>
+							</div>
+						</div>
+					</div>
+
+					<div class="flip-card h-36 cursor-pointer" onclick="toggleCard(this)">
+						<div class="flip-card-inner">
+							<div
+								class="flip-front card-glass p-5 flex flex-col items-center justify-center border border-amber-200/70 shadow-sm hover:border-amber-400 transition-all"
+							>
+								<span class="text-3xl mb-1">☀️</span>
+								<h3 class="font-semibold text-amber-950 text-sm">Tu Energía Única</h3>
+								<span class="text-[11px] text-amber-700/60 mt-1">Toca para descubrir</span>
+							</div>
+							<div
+								class="flip-back bg-gradient-to-br from-amber-400 to-amber-500 text-amber-950 p-5 flex flex-col items-center justify-center rounded-2xl shadow-lg border border-amber-300"
+							>
+								<p class="text-xs sm:text-sm font-medium leading-snug">
+									"Por tu bondad, tus consejos y tu forma tan auténtica de ser. ¡El mundo es mil
+									veces más bonito contigo en él!"
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<section class="mt-8 flex flex-col sm:flex-row gap-3 justify-center items-center">
+				<button
+					id="btn-rain-flowers"
+					class="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-700 text-amber-950 font-bold text-sm shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 transform active:scale-95 transition-all"
+				>
+					<i data-lucide="flower-2" class="w-4 h-4"></i>
+					<span>¡Lluvia de Flores y Estrellas!</span>
+				</button>
+
+				<button
+					id="btn-send-hug"
+					class="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 transform active:scale-95 transition-all"
+				>
+					<i data-lucide="heart" class="w-4 h-4 fill-white"></i>
+					<span>Mandarle un abrazo de vuelta</span>
+				</button>
+			</section>
+
+			<footer class="mt-12 text-center text-xs text-stone-500">
+				<p>🌻 21 de Septiembre • Hecho con todo el cariño para una persona insustituible 💛</p>
+			</footer>
+		</main>
+
+		<script>
+			const appState = {
+				opened: false,
+				isBouquet: false,
+				growthProgress: 0.0,
+				isBlooming: false,
+				musicPlaying: false,
+				sparkles: [],
+			};
+
+			let audioCtx = null;
+			let musicInterval = null;
+			let noteStep = 0;
+
+			const melodyNotes = [
+				{ f: 587.33, d: 0.9 }, // D5
+				{ f: 659.25, d: 0.7 }, // E5
+				{ f: 739.99, d: 1.2 }, // F#5
+				{ f: 880.0, d: 1.4 }, // A5
+				{ f: 739.99, d: 0.8 }, // F#5
+				{ f: 659.25, d: 0.9 }, // E5
+				{ f: 587.33, d: 1.6 }, // D5
+				{ f: 440.0, d: 1.0 }, // A4
+				{ f: 493.88, d: 0.8 }, // B4
+				{ f: 587.33, d: 1.2 }, // D5
+				{ f: 659.25, d: 1.0 }, // E5
+				{ f: 880.0, d: 1.8 }, // A5
+				{ f: 987.77, d: 1.2 }, // B5
+				{ f: 880.0, d: 1.5 }, // A5
+				{ f: 739.99, d: 1.4 }, // F#5
+				{ f: 587.33, d: 2.2 }, // D5 resolve
+			];
+
+			function initAudio() {
+				if (!audioCtx) {
+					const AudioContext = window.AudioContext || window.webkitAudioContext;
+					audioCtx = new AudioContext();
+				}
+				if (audioCtx.state === "suspended") {
+					audioCtx.resume();
+				}
+			}
+
+			function playMusicBoxNote(freq, duration) {
+				if (!audioCtx || !appState.musicPlaying) return;
+
+				try {
+					const osc = audioCtx.createOscillator();
+					const gainNode = audioCtx.createGain();
+
+					// Sine wave with soft harmonic blend
+					osc.type = "sine";
+					osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+					const now = audioCtx.currentTime;
+					gainNode.gain.setValueAtTime(0.001, now);
+					gainNode.gain.exponentialRampToValueAtTime(0.12, now + 0.04);
+					gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration + 0.8);
+
+					osc.connect(gainNode);
+					gainNode.connect(audioCtx.destination);
+
+					osc.start(now);
+					osc.stop(now + duration + 1.0);
+				} catch (err) {
+					console.warn("Audio playback handled:", err);
+				}
+			}
+
+			function startBackgroundMusic() {
+				appState.musicPlaying = true;
+				updateAudioIconUI();
+
+				if (musicInterval) clearInterval(musicInterval);
+
+				musicInterval = setInterval(() => {
+					if (!appState.musicPlaying) return;
+					const currentNote = melodyNotes[noteStep % melodyNotes.length];
+					playMusicBoxNote(currentNote.f, currentNote.d);
+					noteStep++;
+				}, 780);
+			}
+
+			function toggleMusic() {
+				initAudio();
+				appState.musicPlaying = !appState.musicPlaying;
+				updateAudioIconUI();
+
+				if (appState.musicPlaying) {
+					startBackgroundMusic();
+				} else {
+					if (musicInterval) clearInterval(musicInterval);
+				}
+			}
+
+			function updateAudioIconUI() {
+				const ping = document.getElementById("audio-ping");
+				const dot = document.getElementById("audio-dot");
+				const icon = document.getElementById("audio-icon");
+
+				if (appState.musicPlaying) {
+					ping.classList.remove("hidden");
+					dot.className = "relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500";
+					icon.setAttribute("data-lucide", "volume-2");
+				} else {
+					ping.classList.add("hidden");
+					dot.className = "relative inline-flex rounded-full h-2.5 w-2.5 bg-stone-400";
+					icon.setAttribute("data-lucide", "volume-x");
+				}
+				lucide.createIcons();
+			}
+
+			document.getElementById("btn-audio-toggle").addEventListener("click", toggleMusic);
+
+			const envelopeSection = document.getElementById("screen-envelope");
+			const contentSection = document.getElementById("screen-content");
+			const envelopeClickable = document.getElementById("envelope-clickable");
+			const audioToggleContainer = document.getElementById("audio-toggle-container");
+
+			envelopeClickable.addEventListener("click", () => {
+				if (appState.opened) return;
+				appState.opened = true;
+
+				initAudio();
+				startBackgroundMusic();
+
+				launchYellowConfetti(80);
+
+				envelopeSection.style.transform = "scale(0.9) translateY(-20px)";
+				envelopeSection.style.opacity = "0";
+
+				setTimeout(() => {
+					envelopeSection.classList.add("hidden");
+					contentSection.classList.remove("hidden");
+					audioToggleContainer.classList.remove("hidden");
+
+					requestAnimationFrame(() => {
+						contentSection.style.opacity = "1";
+					});
+
+					triggerFlowerBloom();
+				}, 650);
+			});
+
+			const canvas = document.getElementById("flower-canvas");
+			const ctx = canvas.getContext("2d");
+
+			function drawDetailedYellowFlower(c, x, y, scaleVal, growth, isCenterQueen = false) {
+				c.save();
+				c.translate(x, y);
+				c.scale(scaleVal * growth, scaleVal * growth);
+
+				const stemHeight = 220;
+				c.save();
+				c.beginPath();
+				c.moveTo(0, 0);
+				c.bezierCurveTo(20, stemHeight * 0.4, -15, stemHeight * 0.75, 10, stemHeight);
+				c.lineWidth = 8;
+				c.lineCap = "round";
+
+				const stemGrad = c.createLinearGradient(0, 0, 10, stemHeight);
+				stemGrad.addColorStop(0, "#65a30d");
+				stemGrad.addColorStop(0.5, "#4d7c0f");
+				stemGrad.addColorStop(1, "#3f6212");
+				c.strokeStyle = stemGrad;
+				c.stroke();
+
+				const drawLeaf = (lx, ly, angle, side) => {
+					c.save();
+					c.translate(lx, ly);
+					c.rotate(angle);
+					c.beginPath();
+					c.moveTo(0, 0);
+					c.bezierCurveTo(side * 35, -20, side * 70, -10, side * 85, 15);
+					c.bezierCurveTo(side * 60, 35, side * 25, 20, 0, 0);
+					const lGrad = c.createLinearGradient(0, 0, side * 80, 20);
+					lGrad.addColorStop(0, "#84cc16");
+					lGrad.addColorStop(1, "#4d7c0f");
+					c.fillStyle = lGrad;
+					c.fill();
+					c.restore();
+				};
+
+				drawLeaf(5, 75, 0.45, 1);
+				drawLeaf(-5, 135, -0.45, -1);
+				c.restore();
+
+				const layers = [
+					{ count: 28, length: 115, width: 22, color1: "#eab308", color2: "#ca8a04" },
+					{ count: 24, length: 100, width: 20, color1: "#facc15", color2: "#d97706" },
+					{ count: 20, length: 82, width: 17, color1: "#fef08a", color2: "#eab308" },
+				];
+
+				layers.forEach((layer, layerIdx) => {
+					const step = (Math.PI * 2) / layer.count;
+					const layerAngleOffset = layerIdx * 0.15;
+
+					for (let i = 0; i < layer.count; i++) {
+						const angle = i * step + layerAngleOffset;
+						c.save();
+						c.rotate(angle);
+
+						const curLen = layer.length * growth;
+						const curWid = layer.width;
+
+						c.beginPath();
+						c.moveTo(0, 0);
+						c.bezierCurveTo(-curWid * 0.75, curLen * 0.4, -curWid * 0.9, curLen * 0.8, 0, curLen);
+						c.bezierCurveTo(curWid * 0.9, curLen * 0.8, curWid * 0.75, curLen * 0.4, 0, 0);
+
+						const petalGrad = c.createLinearGradient(0, 0, 0, curLen);
+						petalGrad.addColorStop(0, layer.color2);
+						petalGrad.addColorStop(0.65, layer.color1);
+						petalGrad.addColorStop(1, "#fffbeb");
+
+						c.fillStyle = petalGrad;
+						c.shadowColor = "rgba(180, 120, 20, 0.2)";
+						c.shadowBlur = 6;
+						c.fill();
+						c.restore();
+					}
+				});
+
+				const coreR = 40 * growth;
+				const coreGrad = c.createRadialGradient(0, 0, 2, 0, 0, coreR);
+				coreGrad.addColorStop(0, "#451a03");
+				coreGrad.addColorStop(0.6, "#78350f");
+				coreGrad.addColorStop(0.9, "#92400e");
+				coreGrad.addColorStop(1, "#b45309");
+
+				c.beginPath();
+				c.arc(0, 0, coreR, 0, Math.PI * 2);
+				c.fillStyle = coreGrad;
+				c.fill();
+
+				const seedTotal = 95;
+				const phi = 1.6180339887;
+				for (let s = 1; s < seedTotal; s++) {
+					const theta = s * phi * (Math.PI * 2);
+					const rad = Math.sqrt(s / seedTotal) * (coreR - 3);
+					const sx = Math.cos(theta) * rad;
+					const sy = Math.sin(theta) * rad;
+
+					c.beginPath();
+					c.arc(sx, sy, 1.3, 0, Math.PI * 2);
+					c.fillStyle = s % 4 === 0 ? "#fbbf24" : "#291404";
+					c.fill();
+				}
+
+				c.restore();
+			}
+
+			function renderCanvas() {
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+				const radial = ctx.createRadialGradient(
+					canvas.width / 2,
+					190,
+					20,
+					canvas.width / 2,
+					230,
+					230,
+				);
+				radial.addColorStop(0, "rgba(254, 240, 138, 0.35)");
+				radial.addColorStop(0.7, "rgba(254, 240, 138, 0.08)");
+				radial.addColorStop(1, "rgba(255, 255, 255, 0)");
+				ctx.fillStyle = radial;
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+				const growth = appState.growthProgress;
+
+				if (!appState.isBouquet) {
+					drawDetailedYellowFlower(ctx, canvas.width / 2, 190, 1.25, growth, true);
+				} else {
+					const flowers = [
+						{ x: canvas.width / 2 - 75, y: 195, scale: 0.9 },
+						{ x: canvas.width / 2 + 75, y: 200, scale: 0.9 },
+						{ x: canvas.width / 2 - 40, y: 155, scale: 1.05 },
+						{ x: canvas.width / 2 + 40, y: 150, scale: 1.05 },
+						{ x: canvas.width / 2, y: 140, scale: 1.22 },
+					];
+
+					flowers.forEach((f) => {
+						drawDetailedYellowFlower(ctx, f.x, f.y, f.scale, growth);
+					});
+
+					const ribY = 380;
+					const ribX = canvas.width / 2;
+					ctx.save();
+					ctx.translate(ribX, ribY);
+
+					ctx.fillStyle = "#d97706";
+					ctx.beginPath();
+
+					ctx.moveTo(0, 0);
+					ctx.bezierCurveTo(-50, -35, -55, 25, 0, 8);
+
+					ctx.bezierCurveTo(55, 25, 50, -35, 0, 0);
+
+					ctx.beginPath();
+					ctx.moveTo(-4, 5);
+					ctx.bezierCurveTo(-20, 45, -15, 70, -30, 90);
+					ctx.bezierCurveTo(-15, 65, -5, 40, 0, 10);
+					ctx.fillStyle = "#b45309";
+					ctx.fill();
+
+					ctx.beginPath();
+					ctx.moveTo(4, 5);
+					ctx.bezierCurveTo(20, 45, 15, 70, 30, 90);
+					ctx.bezierCurveTo(15, 65, 5, 40, 0, 10);
+					ctx.fill();
+
+					ctx.beginPath();
+					ctx.ellipse(0, 3, 11, 9, 0, 0, Math.PI * 2);
+					ctx.fillStyle = "#f59e0b";
+					ctx.fill();
+					ctx.restore();
+				}
+
+				drawCanvasSparkles();
+			}
+
+			function triggerFlowerBloom() {
+				if (appState.isBlooming) return;
+				appState.isBlooming = true;
+				appState.growthProgress = 0.05;
+
+				let start = null;
+				const duration = 1200;
+
+				function step(timestamp) {
+					if (!start) start = timestamp;
+					const elapsed = timestamp - start;
+					const p = Math.min(1.0, elapsed / duration);
+
+					appState.growthProgress = 1 - Math.pow(1 - p, 3);
+					renderCanvas();
+
+					if (p < 1.0) {
+						requestAnimationFrame(step);
+					} else {
+						appState.growthProgress = 1.0;
+						appState.isBlooming = false;
+						renderCanvas();
+					}
+				}
+				requestAnimationFrame(step);
+			}
+
+			const bouquetBtn = document.getElementById("btn-toggle-bouquet");
+			const bouquetLabel = document.getElementById("label-bouquet-btn");
+			bouquetBtn.addEventListener("click", () => {
+				appState.isBouquet = !appState.isBouquet;
+				bouquetLabel.textContent = appState.isBouquet ? "Ver Flor Individual" : "Ver en Ramillete";
+				triggerFlowerBloom();
+				launchYellowConfetti(40);
+			});
+
+			document.getElementById("btn-re-bloom").addEventListener("click", () => {
+				triggerFlowerBloom();
+				launchYellowConfetti(35);
+			});
+
+			function addCanvasSparkle(x, y) {
+				for (let i = 0; i < 12; i++) {
+					appState.sparkles.push({
+						x: x,
+						y: y,
+						vx: (Math.random() - 0.5) * 5,
+						vy: (Math.random() - 0.5) * 5 - 1.5,
+						size: Math.random() * 4 + 2,
+						alpha: 1.0,
+						color: Math.random() > 0.4 ? "#facc15" : "#ffffff",
+					});
+				}
+			}
+
+			function drawCanvasSparkles() {
+				for (let i = appState.sparkles.length - 1; i >= 0; i--) {
+					const s = appState.sparkles[i];
+					s.x += s.vx;
+					s.y += s.vy;
+					s.alpha -= 0.025;
+					s.size *= 0.96;
+
+					if (s.alpha <= 0) {
+						appState.sparkles.splice(i, 1);
+						continue;
+					}
+
+					ctx.save();
+					ctx.globalAlpha = Math.max(0, s.alpha);
+					ctx.fillStyle = s.color;
+					ctx.beginPath();
+
+					ctx.moveTo(s.x, s.y - s.size);
+					ctx.lineTo(s.x + s.size * 0.3, s.y - s.size * 0.3);
+					ctx.lineTo(s.x + s.size, s.y);
+					ctx.lineTo(s.x + s.size * 0.3, s.y + s.size * 0.3);
+					ctx.lineTo(s.x, s.y + s.size);
+					ctx.lineTo(s.x - s.size * 0.3, s.y + s.size * 0.3);
+					ctx.lineTo(s.x - s.size, s.y);
+					ctx.lineTo(s.x - s.size * 0.3, s.y - s.size * 0.3);
+					ctx.closePath();
+					ctx.fill();
+					ctx.restore();
+				}
+			}
+
+			function handleFlowerTouch(e) {
+				const rect = canvas.getBoundingClientRect();
+				const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+				const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+				const scaleX = canvas.width / rect.width;
+				const scaleY = canvas.height / rect.height;
+
+				const clickX = (clientX - rect.left) * scaleX;
+				const clickY = (clientY - rect.top) * scaleY;
+
+				addCanvasSparkle(clickX, clickY);
+				spawnFloatingHeart(clientX, clientY);
+				renderCanvas();
+			}
+
+			canvas.addEventListener("click", handleFlowerTouch);
+			canvas.addEventListener("touchstart", handleFlowerTouch, { passive: true });
+
+			function spawnFloatingHeart(x, y) {
+				const el = document.createElement("div");
+				el.className = "tap-sparkle text-2xl select-none";
+				const symbols = ["💛", "✨", "🌻", "⭐"];
+				el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+				el.style.left = `${x}px`;
+				el.style.top = `${y}px`;
+				el.style.setProperty("--dx", `${(Math.random() - 0.5) * 80}px`);
+				el.style.setProperty("--rot", `${(Math.random() - 0.5) * 60}deg`);
+
+				document.body.appendChild(el);
+				setTimeout(() => el.remove(), 1400);
+			}
+
+			function toggleCard(cardElement) {
+				cardElement.classList.toggle("is-flipped");
+				playMusicBoxNote(880, 0.4);
+			}
+
+			const ambientCanvas = document.getElementById("ambient-canvas");
+			const aCtx = ambientCanvas.getContext("2d");
+			const particles = [];
+			const PARTICLE_COUNT = 40;
+
+			function resizeAmbientCanvas() {
+				ambientCanvas.width = window.innerWidth;
+				ambientCanvas.height = window.innerHeight;
+			}
+			window.addEventListener("resize", resizeAmbientCanvas);
+			resizeAmbientCanvas();
+
+			function initAmbientParticles() {
+				particles.length = 0;
+				for (let i = 0; i < PARTICLE_COUNT; i++) {
+					particles.push({
+						x: Math.random() * ambientCanvas.width,
+						y: Math.random() * ambientCanvas.height,
+						radius: Math.random() * 3.5 + 1.2,
+						speedY: Math.random() * 0.7 + 0.35,
+						speedX: (Math.random() - 0.5) * 0.5,
+						angle: Math.random() * 360,
+						rotSpeed: (Math.random() - 0.5) * 0.02,
+						opacity: Math.random() * 0.55 + 0.25,
+						isPetal: Math.random() > 0.55,
+					});
+				}
+			}
+			initAmbientParticles();
+
+			function animateAmbientLoop() {
+				aCtx.clearRect(0, 0, ambientCanvas.width, ambientCanvas.height);
+
+				for (let i = 0; i < particles.length; i++) {
+					const p = particles[i];
+					p.y += p.speedY;
+					p.x += Math.sin(p.y * 0.008) * 0.7 + p.speedX;
+					p.angle += p.rotSpeed;
+
+					if (p.y > ambientCanvas.height + 20) {
+						p.y = -20;
+						p.x = Math.random() * ambientCanvas.width;
+					}
+					if (p.x > ambientCanvas.width + 20) p.x = -20;
+					if (p.x < -20) p.x = ambientCanvas.width + 20;
+
+					aCtx.save();
+					aCtx.translate(p.x, p.y);
+					aCtx.rotate(p.angle);
+					aCtx.globalAlpha = p.opacity;
+
+					if (p.isPetal) {
+						aCtx.beginPath();
+						aCtx.ellipse(0, 0, p.radius * 2.8, p.radius * 1.3, 0, 0, Math.PI * 2);
+						aCtx.fillStyle = "#fde047";
+						aCtx.shadowColor = "#eab308";
+						aCtx.shadowBlur = 4;
+						aCtx.fill();
+					} else {
+						aCtx.beginPath();
+						aCtx.arc(0, 0, p.radius, 0, Math.PI * 2);
+						aCtx.fillStyle = "#f59e0b";
+						aCtx.shadowColor = "#fde047";
+						aCtx.shadowBlur = 6;
+						aCtx.fill();
+					}
+					aCtx.restore();
+				}
+
+				if (appState.sparkles.length > 0) {
+					renderCanvas();
+				}
+
+				requestAnimationFrame(animateAmbientLoop);
+			}
+			requestAnimationFrame(animateAmbientLoop);
+
+			function launchYellowConfetti(count = 60) {
+				if (typeof confetti === "function") {
+					confetti({
+						particleCount: count,
+						spread: 70,
+						origin: { y: 0.65 },
+						colors: ["#facc15", "#eab308", "#ca8a04", "#fef08a", "#ffffff"],
+						shapes: ["circle", "square"],
+						scalar: 1.1,
+					});
+				}
+			}
+
+			document.getElementById("btn-rain-flowers").addEventListener("click", () => {
+				launchYellowConfetti(100);
+				playMusicBoxNote(739.99, 0.6);
+				playMusicBoxNote(880, 0.8);
+			});
+
+			document.getElementById("btn-send-hug").addEventListener("click", () => {
+				const waText =
+					"💛 ¡Me encantó mi detalle de flores amarillas! Muchísimas gracias por estar siempre en mi vida, te mando el abrazo más grande del mundo. ¡Feliz 21 de septiembre! ✨🌻";
+				const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(waText)}`;
+				window.open(url, "_blank");
+			});
+
+			window.addEventListener("load", () => {
+				lucide.createIcons();
+			});
+		</script>
+	</body>
+</html>
