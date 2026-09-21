@@ -1,0 +1,145 @@
+:root {
+	--primary-gold: #eab308;
+	--deep-gold: #ca8a04;
+	--soft-parchment: #fdfaf3;
+}
+
+body {
+	font-family: "Outfit", sans-serif;
+	background: radial-gradient(circle at 50% 20%, #fffef8 0%, #fdf6e2 45%, #faedd0 100%);
+	min-height: 100vh;
+	min-height: 100dvh;
+	color: #3f2f18;
+	-webkit-tap-highlight-color: transparent;
+}
+
+/* Tipografías Especiales */
+.font-script {
+	font-family: "Great Vibes", cursive;
+}
+
+.font-serif-romance {
+	font-family: "Playfair Display", serif;
+}
+
+/* Canvas Ambiental */
+#ambient-canvas {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	height: 100dvh;
+	pointer-events: none;
+	z-index: 1;
+}
+
+/* Animaciones */
+@keyframes gentle-float {
+	0%,
+	100% {
+		transform: translateY(0px) scale(1);
+	}
+	50% {
+		transform: translateY(-8px) scale(1.015);
+	}
+}
+
+.animate-float {
+	animation: gentle-float 4.2s ease-in-out infinite;
+	will-change: transform;
+}
+
+@keyframes pulse-gold {
+	0%,
+	100% {
+		box-shadow:
+			0 0 25px rgba(234, 179, 8, 0.4),
+			0 0 50px rgba(245, 158, 11, 0.2);
+	}
+	50% {
+		box-shadow:
+			0 0 45px rgba(234, 179, 8, 0.7),
+			0 0 75px rgba(245, 158, 11, 0.4);
+	}
+}
+
+/* Sello de Lacre */
+.wax-seal {
+	background: radial-gradient(circle at 35% 30%, #ffd966 0%, #e6a100 45%, #b37400 90%);
+	box-shadow:
+		inset 0 2px 4px rgba(255, 255, 255, 0.6),
+		0 8px 24px rgba(179, 116, 0, 0.45);
+	transition: transform 0.3s ease;
+}
+
+.wax-seal:hover {
+	transform: scale(1.08) rotate(3deg);
+}
+
+/* Glassmorphism & Parchment */
+.card-glass {
+	background: rgba(255, 255, 255, 0.88);
+	backdrop-filter: blur(14px);
+	-webkit-backdrop-filter: blur(14px);
+	border: 1px solid rgba(245, 215, 130, 0.5);
+	box-shadow:
+		0 25px 60px -15px rgba(180, 130, 20, 0.16),
+		0 0 0 1px rgba(255, 245, 210, 0.7);
+}
+
+/* Tarjetas 3D Flip */
+.flip-card {
+	perspective: 1000px;
+	outline: none;
+}
+
+.flip-card-inner {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	text-align: center;
+	transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+	transform-style: preserve-3d;
+}
+
+.flip-card.is-flipped .flip-card-inner {
+	transform: rotateY(180deg);
+}
+
+.flip-front,
+.flip-back {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	-webkit-backface-visibility: hidden;
+	backface-visibility: hidden;
+	border-radius: 1.25rem;
+}
+
+.flip-back {
+	transform: rotateY(180deg);
+}
+
+/* Partículas e íconos flotantes generados al tocar la flor */
+.tap-sparkle {
+	position: fixed;
+	pointer-events: none;
+	animation: float-up-fade 1.4s ease-out forwards;
+	z-index: 999;
+}
+
+@keyframes float-up-fade {
+	0% {
+		opacity: 1;
+		transform: translate(-50%, -50%) scale(0.6) rotate(0deg);
+	}
+	50% {
+		opacity: 0.9;
+	}
+	100% {
+		opacity: 0;
+		transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% - 90px)) scale(1.3)
+			rotate(var(--rot, 20deg));
+	}
+}
